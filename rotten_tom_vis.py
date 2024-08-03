@@ -1,9 +1,9 @@
 # 1 - импорт всего
+from collections import Counter
 import numpy as np
 import polars as pl
 import seaborn as sns
 import matplotlib.pyplot as plt
-import scipy.stats as stats
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -97,7 +97,7 @@ plt.title('Top 30 Critic with Highest Review Counts')
 plt.legend('')
 plt.show()
 
-# 9 - Выполняем SQL-запрос для получения списка фильмов
+# 8 - Выполняем SQL-запрос для получения списка фильмов
 # с наибольшим количеством отрицательных отзывов и выводим результат.
 query = """
 SELECT id, COUNT(*) as negReviewCount
@@ -109,38 +109,53 @@ ORDER BY negReviewCount DESC
 topNegMov = df.sql(query)
 print(topNegMov.head())
 
-# 9.1
+# 9
 
+# загружаем зависимости для стоп-сллов
+nltk.download('punkt')
 nltk.download('stopwords')
-stop_words = set(stopwords.words('english'))
 
-# Добавьте любые другие слова, которые вы хотите исключить
-custom_stop_words = {'movie', 'film', 'one', 'would', 'like'}
-stop_words.update(custom_stop_words)
+# составляеем список стоп-слов
+stop_words_all = set(stopwords.words('english'))
+custom_stop_words = {'movie', 'film', 'one', 'would', 'like', 'quite', 'enough',
+                     'character', 'comedy', 'films', 'make', 'time', 'see', 'way', 'year', 'even'}
+stop_words_all.update(custom_stop_words)
 
 
 def clean_text(text, stop_words):
-    tokens = word_tokenize(text.lower())  # Токенизация и приведение к нижнему регистру
-    filtered_tokens = [word for word in tokens if word.isalpha() and word not in stop_words]  # Удаление стоп-слов и небуквенных символов
+    # Токенизация и приведение к нижнему регистру
+    tokens = word_tokenize(text.lower())
+    # Удаление стоп-слов и небуквенных символов
+    filtered_tokens = [word for word in tokens if word.isalpha() and word not in stop_words]
     return ' '.join(filtered_tokens)
 
 
 # 10 - Создаем облако слов для положительных отзывов, объединив текст
-# всех положительных отзывов и визуализировав его с помощью WordCloud.
+# всех положительных отзывов и визуализировав его с помощью WordCloud
 pos_query = """
 SELECT reviewText
 FROM self
 WHERE scoreSentiment = 'POSITIVE'
 """
 
+
+
+
+# 10.01
 pos_df = df.sql(pos_query)['reviewText']
 
 all_word = ' '.join(pos_df.to_list())
-wordcloud = WordCloud(width=800, height=500, max_font_size=110, collocations=False).generate(all_word)
+
+cleaned_text = clean_text(all_word, stop_words_all)
+
+wordcloud = WordCloud(width=800, height=500,
+                      colormap='Blues',
+                      max_font_size=110,
+                      collocations=False).generate(cleaned_text)
 plt.figure(figsize=(10, 7))
 plt.imshow(wordcloud, interpolation='bilinear')
 plt.axis("off")
-plt.title("Positive Review Wordcloud")
+plt.title("Самые частые слова из положительных рецензий")
 plt.show()
 
 # 11 - Создаем облако слов для отрицательных отзывов, объединив текст
@@ -154,11 +169,15 @@ WHERE scoreSentiment = 'NEGATIVE'
 neg_df = df.sql(neg_query)['reviewText']
 
 all_word = ' '.join(neg_df.to_list())
-wordcloud = WordCloud(width=800, height=500, max_font_size=110, collocations=False).generate(all_word)
+
+cleaned_text = clean_text(all_word, stop_words_all)
+
+wordcloud = WordCloud(width=800, height=500,
+                      colormap='Oranges_r',
+                      max_font_size=110,
+                      collocations=False).generate(cleaned_text)
 plt.figure(figsize=(10, 7))
 plt.imshow(wordcloud, interpolation='bilinear')
 plt.axis("off")
-plt.title("Negative Review Wordcloud")
+plt.title("Самые частые слова из отрицательных рецензий")
 plt.show()
-
-# 12 тут надо будет вычесть одно из другого
