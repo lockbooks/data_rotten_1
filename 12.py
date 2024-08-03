@@ -234,51 +234,41 @@ neg_common_words = get_most_common_words(cleaned_neg_text)
 # позитивных и негативных часто встречающихся слов
 top_pos_words = {word for word, _ in pos_common_words}
 top_neg_words = {word for word, _ in neg_common_words}
+
 # объединяем слова из обоих наборов
 top_words = top_pos_words | top_neg_words
+
 # обновляем стоп-слова
 stop_words_all.update(top_words)
 
-# 5 строим облако положительных рецензия
+
 # создаём облако слов для положительных отзывов
 all_word = ' '.join(pos_df.to_list())
-# очищаем от слов, которые часто встречаются в обоих типах рецензий
+
 cleaned_text = clean_text(all_word, stop_words_all)
-# строим график: задаём размер окна, цетовую палитру, максимальный размер
-# шрифта, не включаем словосочетания из двух слов и передаём наш набор слов
+
 wordcloud = WordCloud(width=800, height=500,
                       colormap='Blues',
                       max_font_size=110,
                       collocations=False).generate(cleaned_text)
-# задаём размер графика, на котром будет отображаться облако
 plt.figure(figsize=(10, 7))
-# добавляем сглаживание изображение
 plt.imshow(wordcloud, interpolation='bilinear')
-# отключаем оси и метки
 plt.axis("off")
-# добавляем название графика
 plt.title("Самые частые слова из положительных рецензий")
-# рисуем график позитивных рецензий
 plt.show()
 
 
 # создаём облако слов для отрицательных отзывов
 all_word = ' '.join(neg_df.to_list())
-# очищаем от слов, которые часто встречаются в обоих типах рецензий
+
 cleaned_text = clean_text(all_word, stop_words_all)
-# строим график: задаём размер окна, цетовую палитру, максимальный размер
-# шрифта, не включаем словосочетания из двух слов и передаём наш набор слов
+
 wordcloud = WordCloud(width=800, height=500,
                       colormap='Oranges_r',
                       max_font_size=110,
                       collocations=False).generate(cleaned_text)
-# задаём размер графика, на котром будет отображаться облако
 plt.figure(figsize=(10, 7))
-# добавляем сглаживание изображение
 plt.imshow(wordcloud, interpolation='bilinear')
-# отключаем оси и метки
 plt.axis("off")
-# добавляем название графика
 plt.title("Самые частые слова из отрицательных рецензий")
-# рисуем график негативных рецензий
 plt.show()
